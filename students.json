@@ -1,0 +1,349 @@
+[
+    {
+        "name": "Manuel Cordero",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 1,
+        "totalPaid": 31.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 17.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-03",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-10",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-06-10"
+    },
+    {
+        "name": "David Heras",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 2,
+        "totalPaid": 27.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 17.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-03",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-10",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-06-10"
+    },
+    {
+        "name": "Mishell Moreira",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 3,
+        "totalPaid": 26.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-03",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-10",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-06-10"
+    },
+    {
+        "name": "Richard Lucero",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 4,
+        "totalPaid": 24.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-03",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-06-03"
+    },
+    {
+        "name": "Luis Campoverde",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 5,
+        "totalPaid": 24.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-03",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-06-03"
+    },
+    {
+        "name": "Fabian Vasquet",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 6,
+        "totalPaid": 24.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-03",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-06-03"
+    },
+    {
+        "name": "Vanessa Espinoza",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 7,
+        "totalPaid": 24.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-06-03",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-06-03"
+    },
+    {
+        "name": "Joselyn Endara",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 8,
+        "totalPaid": 22.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-05-27"
+    },
+    {
+        "name": "Kevin Parraga",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 9,
+        "totalPaid": 22.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 6.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-05-27"
+    },
+    {
+        "name": "Carlos Vargas",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 10,
+        "totalPaid": 18.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 4.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 12.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-27",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-05-27"
+    },
+    {
+        "name": "Christian Rivera",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 11,
+        "totalPaid": 13.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            },
+            {
+                "date": "2025-05-20",
+                "amount": 11.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-05-20"
+    },
+    {
+        "name": "Christian Andrade",
+        "grade": "Estudiante",
+        "weeklyAmount": 2.00,
+        "startDate": "2025-05-13",
+        "id": 12,
+        "totalPaid": 2.00,
+        "paymentHistory": [
+            {
+                "date": "2025-05-13",
+                "amount": 2.00,
+                "timestamp": "2025-06-18T18:16:18.000Z"
+            }
+        ],
+        "lastPaymentDate": "2025-05-13"
+    }
+]
