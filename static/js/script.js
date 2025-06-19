@@ -249,14 +249,12 @@ function renderStudents() {
         const status = student.paymentStatus || {}; // Use backend status, ensure it exists
 
         // Logic for paid/unpaid count.
-        if (status.is_current) {
+        if (status.is_current !== undefined && status.is_current) {
             paidCount++;
         } else {
-            unpaidCount++;
+            unpaidCount++; // Includes cases where status might be undefined, hence not is_current
         }
-        // Use total_paid_actual from status if available, otherwise fallback to student.totalPaid
-        const totalPaidForStudent = status.total_paid_actual !== undefined ? status.total_paid_actual : (student.totalPaid || 0);
-        totalCollected += totalPaidForStudent;
+        totalCollected += (status.total_paid_actual !== undefined ? status.total_paid_actual : (student.totalPaid || 0));
 
 
         // Filter students based on search input
@@ -265,18 +263,18 @@ function renderStudents() {
         }
 
         const studentDiv = document.createElement('div');
-        studentDiv.className = `student-card ${status.is_current ? 'paid' : 'unpaid'}`;
+        studentDiv.className = `student-card ${(status.is_current !== undefined && status.is_current) ? 'paid' : 'unpaid'}`;
         studentDiv.innerHTML = `
             <div class="student-info">
                 <h3>${student.name}</h3>
                 <small>${student.grade || 'N/A'}</small>
-                <small>Inicio: ${new Date(student.startDate).toLocaleDateString('es-ES')}</small>
+                <small>Inicio: ${student.startDate ? new Date(student.startDate).toLocaleDateString('es-ES') : 'N/A'}</small>
             </div>
             <div class="student-status">
                 <small>Semanas Transcurridas: ${status.weeks_elapsed !== undefined ? status.weeks_elapsed : 'N/A'}</small><br>
                 <small>Semanas Pagadas: ${status.semanas_pagadas !== undefined ? status.semanas_pagadas : 'N/A'}</small><br>
                 <small>Semanas Faltantes: ${status.semanas_faltantes !== undefined ? status.semanas_faltantes : 'N/A'}</small><br>
-                <small>Total Abonado: $${(status.total_paid_actual !== undefined ? status.total_paid_actual : student.totalPaid || 0).toFixed(2)}</small><br>
+                <small>Total Abonado: $${(status.total_paid_actual !== undefined ? status.total_paid_actual : (student.totalPaid || 0)).toFixed(2)}</small><br>
                 <small style="color: ${status.status_color || '#000'}; font-weight: bold;">${status.status_text || 'Estado no disponible'}</small><br>
                 <small style="color: #666;">Último pago: ${student.lastPaymentDate ? new Date(student.lastPaymentDate).toLocaleDateString('es-ES') : 'Ninguno'}</small>
             </div>
@@ -285,7 +283,6 @@ function renderStudents() {
     });
 
     // Update stats cards
-    // Ensure totalCollected is displayed correctly, it's already summed up using the correct totalPaid value
     document.getElementById('totalStudents').textContent = paymentManager.students.length;
     document.getElementById('paidStudents').textContent = paidCount;
     document.getElementById('unpaidStudents').textContent = unpaidCount;
@@ -301,11 +298,11 @@ function searchStudents() {
 function showAdminModal() {
     document.getElementById('adminModal').style.display = 'block';
     if (!isLoggedIn) {
-        document.getElementById('adminLogin').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
     } else {
-        document.getElementById('adminLogin').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
         document.getElementById('editStudentSection').style.display = 'none'; // Ensure edit form is hidden initially
         document.getElementById('adminStudentsList').style.display = 'block'; // Ensure list is visible
         renderAdminStudentsList();
@@ -323,8 +320,8 @@ function login() {
     const password = document.getElementById('adminPassword').value;
     if (password === adminPasswordDefault) {
         isLoggedIn = true;
-        document.getElementById('adminLogin').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
         renderAdminStudentsList();
         updatePaymentStudentSelect();
     } else {
@@ -334,8 +331,8 @@ function login() {
 
 function logout() {
     isLoggedIn = false;
-    document.getElementById('adminLogin').style.display = 'block';
-    document.getElementById('adminContent').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
     paymentManager.showNotification('Sesión cerrada.', 'info');
     closeAdminModal(); // Close modal on logout
 }
@@ -382,7 +379,7 @@ function renderAdminStudentsList() {
             <div>
                 <strong>${student.name}</strong> (${student.grade || 'N/A'})<br>
                 <small>Semanas Pagadas: ${status.semanas_pagadas !== undefined ? status.semanas_pagadas : 'N/A'} | Semanas Faltantes: ${status.semanas_faltantes !== undefined ? status.semanas_faltantes : 'N/A'}</small><br>
-                <small>Total Abonado: $${(status.total_paid_actual !== undefined ? status.total_paid_actual : student.totalPaid || 0).toFixed(2)}</small><br>
+                <small>Total Abonado: $${(status.total_paid_actual !== undefined ? status.total_paid_actual : (student.totalPaid || 0)).toFixed(2)}</small><br>
                 <small style="color: ${status.status_color || '#000'};">${status.status_text || 'N/A'}</small><br>
                 <small style="color: #666;">Último pago: ${student.lastPaymentDate ? new Date(student.lastPaymentDate).toLocaleDateString('es-ES') : 'Ninguno'}</small>
             </div>
