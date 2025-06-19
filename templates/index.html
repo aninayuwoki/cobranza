@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <div id="loader" class="spinner" style="display:none;"></div>
     <div class="container">
         <div class="header">
             <h1>📚 Control de Pagos Escolares</h1>
@@ -93,7 +94,37 @@
                 <div class="admin-controls">
                     <h3>Alumnos Registrados</h3>
                     <div id="adminStudentsList">
+                        <!-- Student list will be rendered here by JS -->
                         </div>
+                </div>
+
+                <div id="editStudentSection" class="admin-controls" style="display: none;">
+                    <h3>Editar Alumno</h3>
+                    <input type="hidden" id="editStudentId">
+                    <div class="form-group">
+                        <label for="editStudentName">Nombre:</label>
+                        <input type="text" id="editStudentName">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentGrade">Grado/Curso:</label>
+                        <input type="text" id="editStudentGrade">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentWeeklyAmount">Monto Semanal:</label>
+                        <input type="number" id="editStudentWeeklyAmount" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentStartDate">Fecha de Inicio (YYYY-MM-DD):</label>
+                        <input type="date" id="editStudentStartDate">
+                    </div>
+                    <button class="btn" onclick="handleUpdateStudent()">💾 Guardar Cambios</button>
+                    <button class="btn btn-secondary" onclick="cancelEditStudent()">Cancelar</button>
+                </div>
+
+                <div class="admin-controls">
+                    <h3>Reportes</h3>
+                    <button class="btn btn-success" onclick="exportStudentsToExcel()">📄 Exportar a Excel</button>
+                    <!-- Placeholder for PDF export button if added later -->
                 </div>
             </div>
         </div>
