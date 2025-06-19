@@ -24,44 +24,8 @@ class PaymentManager {
         }
     }
 
-    // Method to calculate payment status (adapted from the issue)
-    calculatePaymentStatus(student) {
-        const startDate = new Date(student.startDate);
-        const today = new Date(); // Current date for calculation
-        today.setHours(0, 0, 0, 0); // Normalize to start of day for consistent comparison
-
-        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-
-        // Ensure startDate is valid before proceeding
-        if (isNaN(startDate.getTime())) {
-            return {
-                weeksElapsed: 0,
-                expectedAmount: 0,
-                balance: 0,
-                isCurrent: true, // Or handle as an error/unknown state
-                weeksDelinquent: 0,
-                statusColor: '#bdc3c7', // Neutral color
-                statusText: 'Fecha de inicio inválida'
-            };
-        }
-
-        const weeksElapsed = Math.max(0, Math.floor((today - startDate) / msPerWeek));
-        const expectedAmount = weeksElapsed * student.weeklyAmount;
-        const balance = expectedAmount - student.totalPaid; // Positive balance means money is owed
-
-        const isCurrent = balance <= 0;
-        const weeksDelinquent = isCurrent ? 0 : Math.max(0, Math.ceil(balance / student.weeklyAmount));
-
-        return {
-            weeksElapsed,
-            expectedAmount: parseFloat(expectedAmount.toFixed(2)),
-            balance: parseFloat(balance.toFixed(2)),
-            isCurrent,
-            weeksDelinquent,
-            statusColor: isCurrent ? '#27ae60' : '#e74c3c', // Green for current, Red for delinquent
-            statusText: isCurrent ? 'Al día ✅' : `Atrasado ${weeksDelinquent} semana(s) 🔴`
-        };
-    }
+    // calculatePaymentStatus(student) { // REMOVED - Backend now handles this
+    // }
 }
 
 // Instantiate the PaymentManager
@@ -282,37 +246,38 @@ function renderStudents() {
     const currentSearchTerm = document.getElementById('searchInput').value.toLowerCase();
 
     paymentManager.students.forEach(student => {
-        const status = paymentManager.calculatePaymentStatus(student);
+        const status = student.paymentStatus || {}; // Use backend status, ensure it exists
 
-        // Logic for paid/unpaid count. A student with balance <= 0 is considered paid up.
-        if (status.isCurrent) {
+        // Logic for paid/unpaid count.
+        if (status.is_current) {
             paidCount++;
         } else {
             unpaidCount++;
         }
-        totalCollected += student.totalPaid; // Summing up totalPaid from each student
+        // Use total_paid_actual from status if available, otherwise fallback to student.totalPaid
+        const totalPaidForStudent = status.total_paid_actual !== undefined ? status.total_paid_actual : (student.totalPaid || 0);
+        totalCollected += totalPaidForStudent;
+
 
         // Filter students based on search input
         if (currentSearchTerm && !student.name.toLowerCase().includes(currentSearchTerm)) {
             return; // Skip if not matching search term
         }
 
-        const statusText = status.statusText; // Already calculated by paymentManager
-
         const studentDiv = document.createElement('div');
-        // Apply 'paid' class if balance is not positive (paid up or credit)
-        studentDiv.className = `student-card ${status.isCurrent ? 'paid' : 'unpaid'}`;
+        studentDiv.className = `student-card ${status.is_current ? 'paid' : 'unpaid'}`;
         studentDiv.innerHTML = `
             <div class="student-info">
                 <h3>${student.name}</h3>
-                <small>${student.grade}</small>
+                <small>${student.grade || 'N/A'}</small>
                 <small>Inicio: ${new Date(student.startDate).toLocaleDateString('es-ES')}</small>
             </div>
             <div class="student-status">
-                <small>Semanas transcurridas: ${status.weeksElapsed}</small><br>
-                <small>Pagado: $${student.totalPaid.toFixed(2)}</small><br>
-                <small>Balance adeudado: $${status.balance.toFixed(2)}</small><br>
-                <small style="color: ${status.statusColor}; font-weight: bold;">${status.statusText}</small><br>
+                <small>Semanas Transcurridas: ${status.weeks_elapsed !== undefined ? status.weeks_elapsed : 'N/A'}</small><br>
+                <small>Semanas Pagadas: ${status.semanas_pagadas !== undefined ? status.semanas_pagadas : 'N/A'}</small><br>
+                <small>Semanas Faltantes: ${status.semanas_faltantes !== undefined ? status.semanas_faltantes : 'N/A'}</small><br>
+                <small>Total Abonado: $${(status.total_paid_actual !== undefined ? status.total_paid_actual : student.totalPaid || 0).toFixed(2)}</small><br>
+                <small style="color: ${status.status_color || '#000'}; font-weight: bold;">${status.status_text || 'Estado no disponible'}</small><br>
                 <small style="color: #666;">Último pago: ${student.lastPaymentDate ? new Date(student.lastPaymentDate).toLocaleDateString('es-ES') : 'Ninguno'}</small>
             </div>
         `;
@@ -320,6 +285,7 @@ function renderStudents() {
     });
 
     // Update stats cards
+    // Ensure totalCollected is displayed correctly, it's already summed up using the correct totalPaid value
     document.getElementById('totalStudents').textContent = paymentManager.students.length;
     document.getElementById('paidStudents').textContent = paidCount;
     document.getElementById('unpaidStudents').textContent = unpaidCount;
@@ -408,16 +374,16 @@ function renderAdminStudentsList() {
     }
     list.innerHTML = '';
     paymentManager.students.forEach(student => {
-        const status = paymentManager.calculatePaymentStatus(student); // Get status for display
-        // const statusText = status.statusText; // Already in status object
+        const status = student.paymentStatus || {}; // Use backend status, ensure it exists
 
         const studentDiv = document.createElement('div');
         studentDiv.className = 'admin-student-item';
         studentDiv.innerHTML = `
             <div>
-                <strong>${student.name}</strong> (${student.grade})<br>
-                <small>Semanas: ${status.weeksElapsed} | Pagado: $${student.totalPaid.toFixed(2)} | Balance: $${status.balance.toFixed(2)}</small><br>
-                <small style="color: ${status.statusColor};">${status.statusText}</small><br>
+                <strong>${student.name}</strong> (${student.grade || 'N/A'})<br>
+                <small>Semanas Pagadas: ${status.semanas_pagadas !== undefined ? status.semanas_pagadas : 'N/A'} | Semanas Faltantes: ${status.semanas_faltantes !== undefined ? status.semanas_faltantes : 'N/A'}</small><br>
+                <small>Total Abonado: $${(status.total_paid_actual !== undefined ? status.total_paid_actual : student.totalPaid || 0).toFixed(2)}</small><br>
+                <small style="color: ${status.status_color || '#000'};">${status.status_text || 'N/A'}</small><br>
                 <small style="color: #666;">Último pago: ${student.lastPaymentDate ? new Date(student.lastPaymentDate).toLocaleDateString('es-ES') : 'Ninguno'}</small>
             </div>
             <div style="margin-top: 10px;">

@@ -1,10 +1,11 @@
 import json
 from flask import Flask, render_template, request, jsonify, send_file
 import os
-from datetime import datetime
-from student_utils import validate_student_data, calculate_payment_status
+from datetime import datetime, timedelta # Ensured timedelta is imported
+# from student_utils import validate_student_data, calculate_payment_status # Removed
 import io
 import pandas as pd
+# import math # Math import no longer needed for the new calculate_payment_status
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -67,6 +68,145 @@ def save_students_data(data):
     """Saves student data to the JSON file."""
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=4)
+
+# --- Utility Functions defined in app.py ---
+def validate_student_data(data):
+    required_fields = ['name']
+    for field in required_fields:
+        if field not in data or not str(data[field]).strip():
+            return f"Campo requerido: {field}" # Return message directly
+
+    if 'weeklyAmount' in data:
+        try:
+            if float(data['weeklyAmount']) < 0:
+                return "El monto semanal (weeklyAmount) debe ser un número positivo."
+        except ValueError:
+            return "El monto semanal (weeklyAmount) debe ser un número válido."
+
+    if 'startDate' in data and data['startDate']: # Check if startDate is not empty
+        try:
+            datetime.strptime(data['startDate'], '%Y-%m-%d')
+        except ValueError:
+            return "La fecha de inicio (startDate) no tiene un formato válido (YYYY-MM-DD)."
+    elif 'startDate' in data and not data['startDate']: # Handle empty startDate if it's a required part of validation
+            return "La fecha de inicio (startDate) no puede estar vacía."
+
+    return None # Return None if validation passes
+
+def calculate_payment_status(student):
+    # Default values for return dictionary, useful for early exits
+    # Retain original fields for compatibility where possible, add new ones.
+    default_status = {
+        'weeks_elapsed': 0,
+        'expected_amount': 0, # Will not be directly calculated in the new model this way
+        'balance': 0, # Will not be directly calculated in the new model this way
+        'is_current': False,
+        'weeks_delinquent': 0, # Legacy, maps to new semanas_faltantes
+        'semanas_pagadas': 0,
+        'semanas_faltantes': 0,
+        'total_paid_actual': student.get('totalPaid', 0.0), # Actual sum of all payments
+        'weekly_amount': student.get('weeklyAmount', 0.0),
+        'status_text': "Error en datos de estudiante",
+        'status_color': '#e74c3c' # Error color
+    }
+
+    if not student.get('startDate'):
+        default_status['status_text'] = "Fecha de inicio no definida"
+        default_status['is_current'] = True # Or False, based on desired strictness
+        default_status['status_color'] = '#bdc3c7' # Neutral
+        return default_status
+
+    try:
+        start_date_obj = datetime.strptime(student['startDate'], '%Y-%m-%d').date()
+    except ValueError:
+        default_status['status_text'] = "Formato de fecha de inicio inválido"
+        return default_status
+
+    student_weekly_amount = student.get('weeklyAmount', 0.0)
+    if not isinstance(student_weekly_amount, (int, float)) or student_weekly_amount <= 0:
+        default_status['status_text'] = "Monto semanal inválido o no positivo"
+        # weekly_amount in default_status already reflects student.get('weeklyAmount')
+        return default_status
+    student_weekly_amount = float(student_weekly_amount)
+    default_status['weekly_amount'] = student_weekly_amount
+
+
+    today = datetime.now().date()
+
+    # Process payment history to ensure dates are date objects and amounts are floats
+    valid_payment_history = []
+    raw_payments = student.get('paymentHistory', [])
+    for p_entry in raw_payments:
+        try:
+            if isinstance(p_entry, dict) and 'date' in p_entry and 'amount' in p_entry:
+                payment_date_obj = datetime.strptime(p_entry['date'], '%Y-%m-%d').date()
+                payment_amount_val = float(p_entry['amount'])
+                if payment_amount_val > 0: # Only consider positive payments for covering weeks
+                    valid_payment_history.append({'date': payment_date_obj, 'amount': payment_amount_val})
+        except (ValueError, TypeError):
+            continue # Skip malformed payment entries
+
+    # Sort payments by date to process them chronologically if needed, though current logic sums by week window
+    # payment_history_sorted = sorted(valid_payment_history, key=lambda p: p['date'])
+
+    current_semanas_pagadas = 0
+    current_semanas_faltantes = 0
+    current_weeks_elapsed = 0
+
+    overall_status_text = "Al día ✅"
+    overall_status_color = '#27ae60'
+    overall_is_current = True
+
+    if start_date_obj > today: # Start date is in the future
+        overall_status_text = "No iniciado (Al día) ✅"
+        # All counts (elapsed, pagadas, faltantes) remain 0
+    else:
+        billable_week_start_date = start_date_obj
+        while billable_week_start_date <= today:
+            current_weeks_elapsed += 1
+            billable_week_end_date = billable_week_start_date + timedelta(days=6)
+
+            amount_paid_for_this_billable_week = 0.0
+            # Sum all payments that fall within this billable week
+            for payment in valid_payment_history:
+                if billable_week_start_date <= payment['date'] <= billable_week_end_date:
+                    amount_paid_for_this_billable_week += payment['amount']
+
+            if amount_paid_for_this_billable_week >= student_weekly_amount:
+                current_semanas_pagadas += 1
+            else:
+                current_semanas_faltantes += 1 # This week's $2 obligation was not met
+
+            billable_week_start_date += timedelta(days=7)
+
+        if current_semanas_faltantes > 0:
+            overall_status_text = f"Atrasado {current_semanas_faltantes} semana(s) 🔴"
+            overall_status_color = '#e74c3c'
+            overall_is_current = False
+        elif current_weeks_elapsed == 0 and start_date_obj <= today : # Started today, no full weeks elapsed yet
+             # If the first week (current_weeks_elapsed would be 1 after loop) is not paid, faltantes will be 1.
+             # This case might be redundant if loop handles it.
+             pass
+
+
+    # Update the default_status with calculated values
+    default_status.update({
+        'weeks_elapsed': current_weeks_elapsed,
+        'semanas_pagadas': current_semanas_pagadas,
+        'semanas_faltantes': current_semanas_faltantes,
+        'weeks_delinquent': current_semanas_faltantes, # For compatibility if old key is used
+        'status_text': overall_status_text,
+        'status_color': overall_status_color,
+        'is_current': overall_is_current,
+        # 'expected_amount' and 'balance' under the old model are not directly applicable here.
+        # If needed, 'expected_amount_for_elapsed_weeks' could be current_weeks_elapsed * student_weekly_amount.
+        # A new 'financial_balance' could be student.get('totalPaid',0) - (current_weeks_elapsed * student_weekly_amount).
+        # For now, focusing on SP/SF as per user's direct examples.
+        'expected_amount': round(current_weeks_elapsed * student_weekly_amount, 2), # Calculated for reference
+        'balance': round(student.get('totalPaid', 0.0) - (current_weeks_elapsed * student_weekly_amount), 2) # Calculated for reference
+
+    })
+    return default_status
 
 # --- Flask Routes ---
 
