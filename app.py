@@ -7,15 +7,15 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 
 DATA_FILE = 'students.json'
 
-# --- Helper functions to manage JSON data ---
+# --- Aqui estan las funciones auxiliares para gestionar datos del JSON ---
 def load_students_data():
     """
-    Loads student data from the JSON file.
-    Initializes the file if it doesn't exist or is empty/corrupted.
-    Ensures essential fields exist for each student.
+    Carga los datos de los estudiantes desde el archivo JSON.
+    Inicializa el archivo si no existe o está vacío/corrupto.
+    Se asegura de que existan los campos esenciales para cada estudiante.
     """
     if not os.path.exists(DATA_FILE) or os.path.getsize(DATA_FILE) == 0:
-        # Initialize with an empty list if file doesn't exist or is empty
+       # La lista empieza vacia si el archivo no existe o esta vacio
         with open(DATA_FILE, 'w') as f:
             json.dump([], f)
         return []
@@ -23,7 +23,7 @@ def load_students_data():
     with open(DATA_FILE, 'r') as f:
         try:
             data = json.load(f)
-            # Ensure data is a list; if not, re-initialize
+            # comprueba que los datos sean una lista. si no, reinicializar
             if not isinstance(data, list):
                 print(f"Warning: {DATA_FILE} content is not a list. Initializing with empty list.")
                 with open(DATA_FILE, 'w') as f_write:
@@ -36,23 +36,23 @@ def load_students_data():
                 json.dump([], f_write)
             return []
         
-        # Ensure default values for existing students if they don't have them
+        # valores predeterminados para los estudiantes existentes si no los tienen
         for student in data:
             if 'grade' not in student:
                 student['grade'] = "Estudiante"
             if 'weeklyAmount' not in student:
-                student['weeklyAmount'] = 2.00 # Default weekly amount if missing
+                student['weeklyAmount'] = 2.00 # cobro semanal predeterminado si no se define xd
             if 'startDate' not in student:
-                student['startDate'] = datetime.now().isoformat().split('T')[0] # Default to today if missing
+                student['startDate'] = datetime.now().isoformat().split('T')[0] # Predeterminado si falta hoy
             if 'totalPaid' not in student:
                 student['totalPaid'] = sum(p.get('amount', 0) for p in student.get('paymentHistory', []))
             if 'paymentHistory' not in student:
                 student['paymentHistory'] = []
             if 'lastPaymentDate' not in student:
-                # Find last payment date from history or set to None
+                # buscar la ultima fecha de pago del historial o poner None si no hay
                 if student['paymentHistory']:
                     student['lastPaymentDate'] = max(p.get('date', '') for p in student['paymentHistory'] if p.get('date'))
-                    # If max returns an empty string or None, set to None
+                    # si max devuelve string vacio o None, poner None
                     if not student['lastPaymentDate']:
                         student['lastPaymentDate'] = None
                 else:
@@ -61,7 +61,7 @@ def load_students_data():
 
 
 def save_students_data(data):
-    """Saves student data to the JSON file."""
+    """Guarda los datos de estudiantes en el archivo JSON."""
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=4)
 
@@ -69,28 +69,28 @@ def save_students_data(data):
 
 @app.route('/')
 def index():
-    """Renders the main index page."""
+    """Renderiza la pagina principal index."""
     return render_template('index.html')
 
 @app.route('/api/students', methods=['GET'])
 def get_students():
-    """Returns the list of all students."""
+    """Devuelve la lista de todos los estudiantes."""
     students = load_students_data()
     return jsonify(students)
 
 @app.route('/api/students', methods=['POST'])
 def add_student():
-    """Adds a new student to the system."""
+    """Agrega un nuevo estudiante al sistema."""
     students = load_students_data()
     new_student_data = request.json
     
-    # Generate a new ID (find max ID and add 1, or start from 1 if no students)
+    # genera un nuevo ID (busca el ID mas alto y suma 1, o empieza desde 1 si no hay estudiantes)
     if students:
         new_id = max(s['id'] for s in students) + 1
     else:
         new_id = 1
         
-    # Set default values for new student if not provided
+    # poner valores por defecto para el nuevo estudiante si no se proporcionan
     new_student_data['id'] = new_id
     new_student_data['grade'] = new_student_data.get('grade', "Estudiante")
     new_student_data['weeklyAmount'] = new_student_data.get('weeklyAmount', 2.00)
@@ -101,11 +101,11 @@ def add_student():
 
     students.append(new_student_data)
     save_students_data(students)
-    return jsonify(new_student_data), 201 # 201 Created
+    return jsonify(new_student_data), 201 # 201 Creados
 
 @app.route('/api/students/<int:student_id>', methods=['PUT'])
 def register_payment(student_id):
-    """Updates a student's information, primarily for registering payments."""
+    """Actualiza la info de un estudiante, principalmente para registrar pagos."""
     students = load_students_data()
     updated_data = request.json
     
@@ -113,30 +113,25 @@ def register_payment(student_id):
         if student['id'] == student_id:
             if 'payment' in updated_data:
                 payment = updated_data['payment']
-                # Ensure paymentHistory exists
+                # asegurarse de que paymentHistory exista
                 if 'paymentHistory' not in students[i]:
                     students[i]['paymentHistory'] = []
                 students[i]['paymentHistory'].append(payment)
                 
-                # Ensure totalPaid exists before adding
+                # asegurarse de que totalPaid exista antes de sumar
                 if 'totalPaid' not in students[i]:
                     students[i]['totalPaid'] = 0.0
                 students[i]['totalPaid'] = round(students[i]['totalPaid'] + payment['amount'], 2)
                 
                 students[i]['lastPaymentDate'] = payment['date']
             
-            # If other fields can be updated via PUT, add logic here:
-            # for key, value in updated_data.items():
-            #     if key not in ['payment']: # Exclude keys handled above
-            #         students[i][key] = value
-
             save_students_data(students)
             return jsonify(students[i])
     return jsonify({'message': 'Student not found'}), 404
 
 @app.route('/api/students/<int:student_id>', methods=['DELETE'])
 def delete_student(student_id):
-    """Deletes a student from the system."""
+    """Elimina un estudiante del sistema."""
     students = load_students_data()
     initial_len = len(students)
     students = [s for s in students if s['id'] != student_id]
@@ -146,6 +141,6 @@ def delete_student(student_id):
     return jsonify({'message': 'Student not found'}), 404
 
 if __name__ == '__main__':
-    # Ensure students.json exists and is valid on startup, and has default fields
+    # asegurarse de que students.json existe y es valido al iniciar, y tiene los campos por defecto
     load_students_data() 
-    app.run(debug=True) # debug=True allows for automatic reloading on code changes
+    app.run(debug=True) # debug=True permite recarga automatica cuando cambia el codigo
