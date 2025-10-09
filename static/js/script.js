@@ -1,9 +1,9 @@
-// Data will now be managed by the server
+// Los datos ahora los maneja el servidor, ya no guardamos nada aqui xd
 let students = [];
 let isLoggedIn = false;
 const adminPasswordDefault = "admin123";
 
-// --- API Interaction Functions ---
+// --- Funciones para interactuar con la API del servidor ---
 async function fetchStudents() {
     try {
         const response = await fetch('/api/students');
@@ -15,7 +15,7 @@ async function fetchStudents() {
         return students;
     } catch (error) {
         console.error("Error fetching students:", error);
-        // Optionally, alert the user or show a message if students cannot be loaded
+        // opcionalmente se puede alertar al usuario o mostrar un mensaje si no se pueden cargar los alumnos
         // alert('Error al cargar la lista de alumnos. Asegúrate de que el servidor esté funcionando.');
         return [];
     }
@@ -34,7 +34,7 @@ async function addStudentToServer(studentData) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const newStudent = await response.json();
-        students.push(newStudent); // Add to local array for immediate UI update
+        students.push(newStudent); // agregar al array local para actualizar la interfaz de inmediato
         renderStudents();
         renderAdminStudentsList();
         updatePaymentStudentSelect();
@@ -59,7 +59,7 @@ async function registerPaymentToServer(studentId, payment) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        // Update the local student object
+        // actualizar el objeto del estudiante localmente
         const updatedStudent = await response.json();
         const index = students.findIndex(s => s.id === studentId);
         if (index !== -1) {
@@ -67,7 +67,7 @@ async function registerPaymentToServer(studentId, payment) {
         }
         renderStudents();
         renderAdminStudentsList();
-        // updateStudentPaymentStatus(updatedStudent); // This is now handled by renderStudents
+        // updateStudentPaymentStatus(updatedStudent); // esto ahora lo maneja renderStudents
         alert('Pago registrado exitosamente.');
         return updatedStudent;
     } catch (error) {
@@ -85,7 +85,7 @@ async function deleteStudentFromServer(studentId) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        students = students.filter(student => student.id !== studentId); // Remove from local array
+        students = students.filter(student => student.id !== studentId); // quitar del array local
         renderStudents();
         renderAdminStudentsList();
         updatePaymentStudentSelect();
@@ -96,44 +96,44 @@ async function deleteStudentFromServer(studentId) {
     }
 }
 
-// --- Helper Functions ---
+// --- Funciones auxiliares ---
 
-// NEW: Helper to get the current date without time for consistent calculations
+// NUEVO: funcion para obtener la fecha actual sin la hora para calculos consistentes
 function getTodayDate() {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of the day
+    today.setHours(0, 0, 0, 0); // poner al inicio del dia
     return today;
 }
 
-// MODIFIED: Function to calculate student payment status more accurately
+// MODIFICADO: funcion para calcular el estado de pago del estudiante mas preciso
 function getStudentPaymentStatus(student) {
     const startDate = new Date(student.startDate);
     const today = getTodayDate();
-    const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+    const oneDay = 24 * 60 * 60 * 1000; // milisegundos en un dia
 
-    // Calculate total weeks elapsed since start date until today
-    const diffDays = Math.max(0, Math.floor((today - startDate) / oneDay)); // Ensure non-negative days
+    // calcular el total de semanas transcurridas desde startDate hasta hoy
+    const diffDays = Math.max(0, Math.floor((today - startDate) / oneDay)); // asegurar que no sean dias negativos
     let weeksElapsed = Math.floor(diffDays / 7);
 
-    // If there are partial days in the current week, count it as a full elapsed week for billing
+    // si hay dias parciales en la semana actual, contarla como semana completa transcurrida para facturacion
     if (diffDays % 7 !== 0) {
         weeksElapsed++;
     }
 
-    // Handle cases where start date is in the future or today
+    // manejar casos donde startDate esta en el futuro o es hoy
     if (startDate > today) {
-        weeksElapsed = 0; // Student hasn't started yet
+        weeksElapsed = 0; // el estudiante aun no ha empezado
     } else if (diffDays === 0 && student.totalPaid === 0) {
-        // If student started today and paid nothing, they owe 1 week
+        // si el estudiante empezo hoy y no pago nada, debe 1 semana
         weeksElapsed = 1;
     } else if (diffDays === 0 && student.totalPaid > 0) {
-        // If student started today and paid something, they are paid
-        weeksElapsed = 0; // Or based on payment amount, but for now, consider paid for day 0
+        // si el estudiante empezo hoy y pago algo, esta pagado
+        weeksElapsed = 0; // o basado en el monto del pago, pero por ahora consideramos pagado para el dia 0
     }
 
 
     const owedAmount = weeksElapsed * student.weeklyAmount;
-    let balance = owedAmount - student.totalPaid; // Positive balance = owed, Negative balance = credit
+    let balance = owedAmount - student.totalPaid; // balance positivo = debe, balance negativo = credito
 
     let statusText = '';
     let isPaidUp = false;
@@ -143,29 +143,29 @@ function getStudentPaymentStatus(student) {
 
 
     if (balance > 0) {
-        // Student owes money
+        // el estudiante debe dinero
         isPaidUp = false;
         const weeksOwed = Math.ceil(balance / student.weeklyAmount);
         statusText = `Atrasado 🔴 (${weeksOwed} semana${weeksOwed !== 1 ? 's' : ''})`;
     } else if (balance <= 0) {
-        // Student is paid up or has a credit
+        // el estudiante esta al dia o tiene credito
         isPaidUp = true;
         
-        // Determine status text based on last payment and balance
+        // determinar el texto de status basado en el ultimo pago y balance
         if (balance < 0) {
             const weeksInCredit = Math.floor(Math.abs(balance) / student.weeklyAmount);
             if (weeksInCredit > 0) {
                  statusText = `Pagado Adelantado ✅ (${weeksInCredit} semana${weeksInCredit !== 1 ? 's' : ''})`;
             } else {
-                statusText = 'Al Día ✅'; // Small negative balance, not enough for a full week credit
+                statusText = 'Al Día ✅'; // balance negativo pequeño, no alcanza para una semana completa de credito
             }
-        } else { // balance is 0
+        } else { // balance es 0
             statusText = 'Al Día ✅';
         }
 
-        // Add "Revisar" warning if last payment is old, even if balance is good.
-        // This threshold might need adjustment based on when you expect payments.
-        // For example, if weekly payments are expected, more than 7 days without payment is a flag.
+        // agregar advertencia "Revisar" si el ultimo pago es antiguo, aunque el balance este bien xd
+        // este umbral puede necesitar ajustes segun cuando esperes los pagos
+        // por ejemplo, si se esperan pagos semanales, mas de 7 dias sin pagar es una señal
         if (lastPaymentDate && daysSinceLastPayment >= 7 && statusText.includes('Al Día')) {
             statusText = statusText.replace('Al Día ✅', 'Pago Reciente (revisar) ⚠️');
         } else if (lastPaymentDate && daysSinceLastPayment >= 14 && (statusText.includes('Al Día') || statusText.includes('Pagado Adelantado'))) {
@@ -184,15 +184,15 @@ function getStudentPaymentStatus(student) {
 }
 
 
-// Function to render students in the main list
+// funcion para renderizar estudiantes en la lista principal
 function renderStudents() {
-    // IMPORTANT: Make sure this ID matches your HTML (from the previous step: 'studentList' or 'studentsGrid')
+    // IMPORTANTE: asegurate de que este ID coincida con tu HTML (del paso anterior: 'studentList' o 'studentsGrid')
     const studentListDiv = document.getElementById('studentList') || document.getElementById('studentsGrid'); 
     if (!studentListDiv) {
         console.error("Element with ID 'studentList' or 'studentsGrid' not found.");
         return;
     }
-    studentListDiv.innerHTML = ''; // Clear current list
+    studentListDiv.innerHTML = ''; // limpiar la lista actual
 
     let paidCount = 0;
     let unpaidCount = 0;
@@ -203,23 +203,23 @@ function renderStudents() {
     students.forEach(student => {
         const status = getStudentPaymentStatus(student);
 
-        // Logic for paid/unpaid count. A student with balance <= 0 is considered paid up.
-        if (status.balance <= 0) { // Check balance directly
+        // logica para contar pagados/no pagados. un estudiante con balance <= 0 se considera al dia
+        if (status.balance <= 0) { // chequear el balance directamente
             paidCount++;
         } else {
             unpaidCount++;
         }
-        totalCollected += student.totalPaid; // Summing up totalPaid from each student
+        totalCollected += student.totalPaid; // sumando el totalPaid de cada estudiante
 
-        // Filter students based on search input
+        // filtrar estudiantes basado en el input de busqueda
         if (currentSearchTerm && !student.name.toLowerCase().includes(currentSearchTerm)) {
-            return; // Skip if not matching search term
+            return; // saltar si no coincide con el termino de busqueda
         }
 
         const statusText = status.statusText;
 
         const studentDiv = document.createElement('div');
-        // Apply 'paid' class if balance is not positive (paid up or credit)
+        // aplicar la clase 'paid' si el balance no es positivo (al dia o con credito)
         studentDiv.className = `student-card ${status.balance <= 0 ? 'paid' : 'unpaid'}`; 
         studentDiv.innerHTML = `
             <div class="student-info">
@@ -238,19 +238,19 @@ function renderStudents() {
         studentListDiv.appendChild(studentDiv);
     });
 
-    // Update stats cards
+    // actualizar las tarjetas de estadisticas
     document.getElementById('totalStudents').textContent = students.length;
     document.getElementById('paidStudents').textContent = paidCount;
     document.getElementById('unpaidStudents').textContent = unpaidCount;
     document.getElementById('totalCollected').textContent = `$${totalCollected.toFixed(2)}`;
 }
 
-// Function to handle student search
+// funcion para manejar la busqueda de estudiantes
 function searchStudents() {
-    renderStudents(); // Re-render to apply search filter
+    renderStudents(); // re-renderizar para aplicar el filtro de busqueda
 }
 
-// --- Admin Modal Functions ---
+// --- Funciones del modal de administrador ---
 function showAdminModal() {
     document.getElementById('adminModal').style.display = 'block';
     if (!isLoggedIn) {
@@ -266,7 +266,7 @@ function showAdminModal() {
 
 function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
-    document.getElementById('adminPassword').value = ''; // Clear password field
+    document.getElementById('adminPassword').value = ''; // limpiar el campo de contraseña
 }
 
 function login() {
@@ -287,10 +287,10 @@ function logout() {
     document.getElementById('adminLogin').style.display = 'block';
     document.getElementById('adminContent').style.display = 'none';
     alert('Sesión cerrada.');
-    closeAdminModal(); // Close modal on logout
+    closeAdminModal(); // cerrar el modal al hacer logout
 }
 
-// Function to handle adding a new student
+// funcion para manejar agregar un nuevo estudiante
 async function addStudent() {
     const studentNameInput = document.getElementById('studentName');
     const name = studentNameInput.value.trim();
@@ -302,20 +302,20 @@ async function addStudent() {
 
     const newStudent = {
         name: name,
-        grade: "Estudiante", // Default grade
-        weeklyAmount: 2.00, // Default weekly amount
-        startDate: new Date().toISOString().split('T')[0], // Current date as start date
+        grade: "Estudiante", // grado por defecto
+        weeklyAmount: 2.00, // monto semanal por defecto
+        startDate: new Date().toISOString().split('T')[0], // fecha actual como fecha de inicio
         totalPaid: 0.00,
         paymentHistory: [],
         lastPaymentDate: null
     };
 
     await addStudentToServer(newStudent);
-    studentNameInput.value = ''; // Clear input
+    studentNameInput.value = ''; // limpiar el input
 }
 
 
-// Function to render students in the admin panel's deletion list
+// funcion para renderizar estudiantes en la lista de eliminacion del panel de admin
 function renderAdminStudentsList() {
     const list = document.getElementById('adminStudentsList');
     if (!list) {
@@ -324,7 +324,7 @@ function renderAdminStudentsList() {
     }
     list.innerHTML = '';
     students.forEach(student => {
-        const status = getStudentPaymentStatus(student); // Get status for display
+        const status = getStudentPaymentStatus(student); // obtener status para mostrar
         const statusText = status.statusText;
 
         const studentDiv = document.createElement('div');
@@ -347,14 +347,14 @@ function renderAdminStudentsList() {
     });
 }
 
-// Function to populate the student select dropdown for payments
+// funcion para poblar el dropdown de seleccion de estudiantes para pagos
 function updatePaymentStudentSelect() {
     const select = document.getElementById('paymentStudent');
     if (!select) {
         console.error("Element with ID 'paymentStudent' not found.");
         return;
     }
-    select.innerHTML = '<option value="">Seleccione un alumno...</option>'; // Clear and add default
+    select.innerHTML = '<option value="">Seleccione un alumno...</option>'; // limpiar y agregar opcion por defecto
     students.forEach(student => {
         const option = document.createElement('option');
         option.value = student.id;
@@ -363,7 +363,7 @@ function updatePaymentStudentSelect() {
     });
 }
 
-// Function to register a payment
+// funcion para registrar un pago
 async function registerPayment() {
     const studentId = document.getElementById('paymentStudent').value;
     const amount = parseFloat(document.getElementById('paymentAmountInput').value);
@@ -383,18 +383,18 @@ async function registerPayment() {
     const payment = {
         date: paymentDate,
         amount: amount,
-        timestamp: new Date().toISOString() // Record payment time
+        timestamp: new Date().toISOString() // registrar el momento del pago
     };
 
     await registerPaymentToServer(parseInt(studentId), payment);
 
-    // Clear form fields after successful registration
+    // limpiar los campos del formulario despues de registrar exitosamente
     document.getElementById('paymentStudent').value = '';
-    document.getElementById('paymentAmountInput').value = '2.00'; // Reset to default
+    document.getElementById('paymentAmountInput').value = '2.00'; // resetear al valor por defecto
     document.getElementById('paymentDate').value = '';
 }
 
-// No longer strictly needed as renderStudents() handles the full update
+// ya no es estrictamente necesario porque renderStudents() maneja la actualizacion completa
 // function updateStudentPaymentStatus(updatedStudent) { }
 
 
@@ -404,9 +404,9 @@ async function deleteStudent(studentId) {
     }
 }
 
-// Event listeners
+// event listeners xd
 document.addEventListener('DOMContentLoaded', () => {
-    // Only add listeners if elements exist
+    // solo agregar listeners si los elementos existen
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', searchStudents);
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Element with ID 'adminPassword' not found. Admin login via Enter key may not work.");
     }
 
-    // Cerrar modal al hacer clic fuera
+    // cerrar modal al hacer clic fuera
     window.onclick = function(event) {
         const modal = document.getElementById('adminModal');
         if (modal && event.target === modal) {
@@ -433,6 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Inicializar la aplicación
-    fetchStudents(); // Load students from server on startup
+    // inicializar la aplicacion y cargar estudiantes desde el servidor al arrancar
+    fetchStudents();
 });
